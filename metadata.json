@@ -1,0 +1,6 @@
+{
+  "name": "QUERY_NOIR: Forensic SQL Investigation Engine",
+  "description": "A neo-noir interactive SQL investigation workspace across 15 forensic cases and 3 analyst clearance tiers, featuring real SQLite execution, EXPLAIN query plan profiling, animated character confrontations, and a Gemini Forensic Director.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
