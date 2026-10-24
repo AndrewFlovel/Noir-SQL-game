@@ -95,14 +95,14 @@ async function startServer() {
 
   app.post('/api/evaluate', async (req, res) => {
     try {
-      const { caseId, sql } = req.body || {};
+      const { caseId, sql, language = 'en' } = req.body || {};
       if (!caseId || typeof sql !== 'string') {
         res.status(400).json({ error: 'Missing caseId or sql.' });
         return;
       }
 
       const execResult = await executeCaseQuery(caseId, sql);
-      const fallbackEval = buildDeterministicEvaluation(caseId, execResult);
+      const fallbackEval = buildDeterministicEvaluation(caseId, execResult, language);
       const forensicCase = getCaseById(caseId);
       const primarySuspect = CHARACTERS[forensicCase.suspectIds[0]];
       const tierPersona = primarySuspect.tierEvolution[forensicCase.tier - 1];
@@ -114,6 +114,13 @@ async function startServer() {
       }
 
       try {
+        const langGuidance =
+          language === 'es'
+            ? 'LANGUAGE INSTRUCTION: Write suspectDialogue, forensicDirectorVerdict, and architecturalGuidance in natural Spanish (Español). Preserve all technical SQL terms, table names, and column identifiers in exact English code backticks.'
+            : language === 'pt'
+            ? 'LANGUAGE INSTRUCTION: Write suspectDialogue, forensicDirectorVerdict, and architecturalGuidance in natural Portuguese (Português). Preserve all technical SQL terms, table names, and column identifiers in exact English code backticks.'
+            : 'LANGUAGE INSTRUCTION: Write suspectDialogue, forensicDirectorVerdict, and architecturalGuidance in English.';
+
         const prompt = `
 CASE METADATA:
 - Case ID: ${forensicCase.id} (${forensicCase.title})
@@ -138,6 +145,8 @@ SQLITE EXECUTION & EXPLAIN QUERY PLAN VERIFICATION:
 - Simulated Latency: ${execResult.telemetry.simulatedLatencyMs}ms (Target < ${forensicCase.targetLatencyMs}ms)
 - Simulated Cost: ${execResult.telemetry.simulatedCostUnits} units
 - Anti-Patterns Flagged: ${JSON.stringify(execResult.telemetry.antiPatternsDetected)}
+
+${langGuidance}
 
 Respond in JSON matching the schema. Keep suspectDialogue in character for ${primarySuspect.name} (${tierPersona.roleTitle}). Never reveal the complete SQL solution code.`;
 

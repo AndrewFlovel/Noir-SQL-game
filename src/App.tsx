@@ -22,7 +22,8 @@ import {
   Award,
   Lock,
   Unlock,
-  KeyRound
+  KeyRound,
+  Globe
 } from 'lucide-react';
 import { FORENSIC_CASES, ForensicCase, getCaseById } from './data/cases';
 import { CHARACTERS, STAGE_CUTSCENES } from './data/characters';
@@ -37,8 +38,11 @@ import { NoirPortrait } from './components/NoirPortrait';
 import { CutsceneModal, CutsceneType } from './components/CutsceneModal';
 import { CurriculumMatrixModal } from './components/CurriculumMatrixModal';
 import { SuspectDossiersModal } from './components/SuspectDossiersModal';
+import { LanguageProvider, useLanguage } from './i18n/LanguageContext';
+import { Language } from './i18n/types';
 
-export default function App() {
+function QueryNoirApp() {
+  const { language, setLanguage, t, getCase, characters, stageCutscenes } = useLanguage();
   // Active case & progression state
   const [activeCaseId, setActiveCaseId] = useState<string>('1.1');
   const [solvedCases, setSolvedCases] = useState<Record<string, boolean>>(() => {
@@ -98,7 +102,7 @@ export default function App() {
     tier: 1
   });
 
-  const activeCase: ForensicCase = getCaseById(activeCaseId);
+  const activeCase: ForensicCase = getCase(activeCaseId);
   const currentSql = sqlBuffers[activeCaseId] ?? activeCase.starterSql;
 
   useEffect(() => {
@@ -141,7 +145,7 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
     const initCase = async () => {
-      const initialSql = sqlBuffers[activeCaseId] ?? getCaseById(activeCaseId).starterSql;
+      const initialSql = sqlBuffers[activeCaseId] ?? getCase(activeCaseId).starterSql;
       try {
         const res = await fetch('/api/execute', {
           method: 'POST',
@@ -169,7 +173,7 @@ export default function App() {
         }
       }
 
-      const firstTable = getCaseById(activeCaseId).tables[0]?.tableName;
+      const firstTable = getCase(activeCaseId).tables[0]?.tableName;
       if (firstTable) {
         try {
           const pRes = await fetch('/api/preview', {
@@ -207,7 +211,7 @@ export default function App() {
 
   // Select a case and trigger Stage Intro (if new tier) + Case Opening Confrontation
   const handleSelectCase = (targetCaseId: string, showOpeningCutscene = true) => {
-    const targetCase = getCaseById(targetCaseId);
+    const targetCase = getCase(targetCaseId);
     const prevTier = activeCase.tier;
     setActiveCaseId(targetCaseId);
     setRightTab('results');
@@ -236,7 +240,7 @@ export default function App() {
         const res = await fetch('/api/evaluate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ caseId: activeCaseId, sql: currentSql })
+          body: JSON.stringify({ caseId: activeCaseId, sql: currentSql, language })
         });
         if (res.ok) {
           const payload = await res.json();
@@ -244,11 +248,11 @@ export default function App() {
           evaluation = payload.evaluation;
         } else {
           execution = await executeCaseQuery(activeCaseId, currentSql);
-          evaluation = buildDeterministicEvaluation(activeCaseId, execution);
+          evaluation = buildDeterministicEvaluation(activeCaseId, execution, language);
         }
       } catch {
         execution = await executeCaseQuery(activeCaseId, currentSql);
-        evaluation = buildDeterministicEvaluation(activeCaseId, execution);
+        evaluation = buildDeterministicEvaluation(activeCaseId, execution, language);
       }
 
       setExecResult(execution);
@@ -366,7 +370,7 @@ export default function App() {
   };
 
   const primarySuspectId = activeCase.suspectIds[0];
-  const primarySuspect = CHARACTERS[primarySuspectId];
+  const primarySuspect = characters[primarySuspectId] || CHARACTERS[primarySuspectId];
   const primarySuspectPersona = primarySuspect.tierEvolution[activeCase.tier - 1];
   const totalSolvedCount = Object.values(solvedCases).filter(Boolean).length;
 
@@ -399,40 +403,59 @@ export default function App() {
             }}
             className="hover:text-amber-400 hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
           >
-            Active Case
+            {t('navActiveCase')}
           </button>
           <button
             type="button"
             onClick={() => setIsMatrixOpen(true)}
             className="hover:text-amber-400 hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
           >
-            Case Index
+            {t('navCaseIndex')}
           </button>
           <button
             type="button"
             onClick={() => setIsDossiersOpen(true)}
             className="hover:text-amber-400 hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
           >
-            Suspect Dossiers
+            {t('navDossiers')}
           </button>
           <button
             type="button"
             onClick={() => setIsMatrixOpen(true)}
             className="hover:text-amber-400 hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
           >
-            Curriculum Matrix
+            {t('navCurriculum')}
           </button>
         </nav>
 
-        {/* Zone 3: 1 primary action */}
+        {/* Zone 3: Language Selector & Submit Action */}
         <div className="flex items-center gap-3 shrink-0">
+          {/* Language Selector */}
+          <div className="flex items-center gap-1 bg-[#0A0E17] border border-slate-800 rounded-lg p-1 text-xs shrink-0">
+            <Globe className="w-3.5 h-3.5 text-amber-400 ml-1 mr-0.5" />
+            {(['en', 'es', 'pt'] as const).map((lang) => (
+              <button
+                key={lang}
+                type="button"
+                onClick={() => setLanguage(lang)}
+                className={`px-2 py-0.5 rounded font-mono font-bold transition-all ${
+                  language === lang
+                    ? 'bg-amber-400/20 text-amber-300 border border-amber-500/40 shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                {lang.toUpperCase()}
+              </button>
+            ))}
+          </div>
+
           <button
             type="button"
             disabled={isEvaluating}
             onClick={handleSubmitEvidence}
             className="px-4 py-2 text-xs font-semibold text-slate-950 bg-amber-400 hover:bg-amber-300 disabled:opacity-50 rounded-lg transition-colors whitespace-nowrap shrink-0"
           >
-            {isEvaluating ? 'Evaluating Evidence...' : 'Submit Evidence'}
+            {isEvaluating ? t('evaluatingEvidence') : t('submitEvidence')}
           </button>
         </div>
       </header>
@@ -447,10 +470,10 @@ export default function App() {
             {([1, 2, 3] as const).map((tierNum) => {
               const tierLabel =
                 tierNum === 1
-                  ? 'Tier 1: Beat Sleuth'
+                  ? t('tier1Name')
                   : tierNum === 2
-                    ? 'Tier 2: Syndicate Detective'
-                    : 'Tier 3: Forensic Mastermind';
+                    ? t('tier2Name')
+                    : t('tier3Name');
               const isCurrentTier = activeCase.tier === tierNum;
               return (
                 <button
@@ -477,6 +500,7 @@ export default function App() {
           {/* 5 Cases within the Active Tier */}
           <div className="flex items-center gap-1 p-1 bg-[#0A0E17] border border-slate-800 rounded-lg">
             {FORENSIC_CASES.filter((c) => c.tier === activeCase.tier).map((c) => {
+              const locC = getCase(c.id);
               const globalIdx = FORENSIC_CASES.findIndex((item) => item.id === c.id);
               const unlocked = isCaseUnlocked(c, globalIdx);
               const isSolved = Boolean(solvedCases[c.id]);
@@ -497,7 +521,7 @@ export default function App() {
                 >
                   <span>{c.id}</span>
                   <span className="hidden xl:inline text-[11px] font-sans text-slate-400">
-                    {c.flowLabel}
+                    {locC.flowLabel}
                   </span>
                   {isSolved && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
                 </button>
@@ -509,7 +533,7 @@ export default function App() {
         {/* Stage & Case Cutscene Animation Triggers + Clearance Telemetry */}
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="font-mono text-slate-400 tabular-nums mr-1">
-            Cleared: {totalSolvedCount} / 15 Cases
+            {t('casesCleared')}: {totalSolvedCount} / 15
           </span>
 
           <button
@@ -524,7 +548,7 @@ export default function App() {
             className="px-2.5 py-1.5 text-xs font-medium text-slate-200 hover:text-amber-300 bg-[#0A0E17] border border-slate-800 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0"
           >
             <Film className="w-3.5 h-3.5 text-amber-400" />
-            Stage {activeCase.tier} Intro
+            {t('stageIntroBtn').replace('{tier}', String(activeCase.tier))}
           </button>
 
           <button
@@ -539,7 +563,7 @@ export default function App() {
             className="px-2.5 py-1.5 text-xs font-medium text-slate-200 hover:text-amber-300 bg-[#0A0E17] border border-slate-800 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0"
           >
             <Play className="w-3.5 h-3.5 text-amber-400" />
-            Case {activeCase.id} Intro
+            {t('caseIntroBtn').replace('{id}', activeCase.id)}
           </button>
 
           <button
@@ -554,7 +578,7 @@ export default function App() {
             className="px-2.5 py-1.5 text-xs font-medium text-slate-200 hover:text-emerald-300 bg-[#0A0E17] border border-slate-800 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0"
           >
             <Award className="w-3.5 h-3.5 text-emerald-400" />
-            Case {activeCase.id} Finale
+            {t('caseOutroBtn').replace('{id}', activeCase.id)}
           </button>
 
           <button
@@ -572,7 +596,7 @@ export default function App() {
             className="px-2.5 py-1.5 text-xs font-medium text-slate-200 hover:text-emerald-300 bg-[#0A0E17] border border-slate-800 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0"
           >
             <Award className="w-3.5 h-3.5 text-amber-400" />
-            Stage {activeCase.tier} Finale
+            {t('stageFinaleBtn').replace('{tier}', String(activeCase.tier))}
           </button>
 
           <button
@@ -580,7 +604,7 @@ export default function App() {
             onClick={() => setShowInlineStage((prev) => !prev)}
             className="px-2.5 py-1.5 text-xs font-medium text-amber-300 hover:text-amber-200 bg-slate-900 border border-slate-700 rounded-lg transition-colors whitespace-nowrap shrink-0"
           >
-            {showInlineStage ? 'Hide Stage Theatre' : 'Show Stage Theatre'}
+            {showInlineStage ? t('hideStageTheatre') : t('showStageTheatre')}
           </button>
         </div>
       </section>
@@ -589,7 +613,7 @@ export default function App() {
           INLINE ANIMATED STAGE & CASE CONFRONTATION THEATRE (Non-Blocking & Scrollable)
          ==================================================================== */}
       {showInlineStage && (() => {
-        const stageScript = STAGE_CUTSCENES[activeCase.tier];
+        const stageScript = stageCutscenes[activeCase.tier] || STAGE_CUTSCENES[activeCase.tier];
         const activeBeats =
           inlineMode === 'stage_intro'
             ? stageScript.introBeats
@@ -612,21 +636,21 @@ export default function App() {
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs font-mono font-semibold text-amber-400">
                     {inlineMode === 'stage_intro'
-                      ? `STAGE ${activeCase.tier} OPENING BRIEFING`
+                      ? t('stageOpeningBriefing').replace('{tier}', String(activeCase.tier))
                       : inlineMode === 'stage_outro'
-                        ? `STAGE ${activeCase.tier} FINALE SHOWDOWN`
+                        ? t('stageFinaleShowdown').replace('{tier}', String(activeCase.tier))
                         : inlineMode === 'case_intro'
-                          ? `CASE ${activeCase.id} OPENING CONFRONTATION`
-                          : `CASE ${activeCase.id} RESOLUTION SHOWDOWN`}
+                          ? t('caseOpeningConfrontation').replace('{id}', activeCase.id)
+                          : t('caseResolutionShowdown').replace('{id}', activeCase.id)}
                   </span>
                   <span className="text-slate-600">·</span>
                   <div className="flex items-center gap-1 bg-[#0A0E17] p-1 rounded-lg border border-slate-800">
                     {(
                       [
-                        ['stage_intro', `Stage ${activeCase.tier} Intro`],
-                        ['case_intro', `Case ${activeCase.id} Intro`],
-                        ['case_outro', `Case ${activeCase.id} Outro`],
-                        ['stage_outro', `Stage ${activeCase.tier} Finale`]
+                        ['stage_intro', t('stageIntroBtn').replace('{tier}', String(activeCase.tier))],
+                        ['case_intro', t('caseIntroBtn').replace('{id}', activeCase.id)],
+                        ['case_outro', t('caseOutroBtn').replace('{id}', activeCase.id)],
+                        ['stage_outro', t('stageFinaleBtn').replace('{tier}', String(activeCase.tier))]
                       ] as const
                     ).map(([modeKey, label]) => (
                       <button
@@ -660,14 +684,14 @@ export default function App() {
                     }
                     className="px-2.5 py-1 text-xs font-medium text-slate-300 hover:text-white bg-[#0A0E17] border border-slate-800 rounded-lg transition-colors whitespace-nowrap shrink-0"
                   >
-                    Fullscreen Cutscene
+                    {t('fullscreenCutscene')}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowInlineStage(false)}
                     className="px-2.5 py-1 text-xs font-medium text-slate-400 hover:text-white bg-[#0A0E17] border border-slate-800 rounded-lg transition-colors whitespace-nowrap shrink-0"
                   >
-                    Collapse
+                    {t('collapseBtn')}
                   </button>
                 </div>
               </div>
@@ -694,12 +718,12 @@ export default function App() {
                     size="sm"
                   />
                   <div className="min-w-0">
-                    <div className="text-[10px] font-mono text-amber-400">DETECTIVE</div>
+                    <div className="text-[10px] font-mono text-amber-400">{t('detectiveBadge')}</div>
                     <div className="text-sm font-semibold text-white truncate">
                       Silas Vance
                     </div>
                     <div className="text-[11px] text-slate-400 truncate">
-                      {CHARACTERS.detective_silas.tierEvolution[activeCase.tier - 1].roleTitle}
+                      {characters.detective_silas.tierEvolution[activeCase.tier - 1].roleTitle}
                     </div>
                   </div>
                 </div>
@@ -708,10 +732,11 @@ export default function App() {
                 <div className="lg:col-span-5 p-3.5 rounded-lg bg-[#0A0E17] border border-slate-800 flex flex-col justify-between">
                   <div className="flex items-center justify-between gap-2 text-xs font-mono mb-1.5">
                     <span className="text-amber-400 font-semibold">
-                      {currentBeat?.speakerName} ({currentBeat?.speakerRole})
+                      {(characters[currentBeat?.speakerId]?.name || currentBeat?.speakerName)} (
+                      {characters[currentBeat?.speakerId]?.tierEvolution[activeCase.tier - 1]?.roleTitle || currentBeat?.speakerRole})
                     </span>
                     <span className="text-slate-500 tabular-nums">
-                      Beat {safeIdx + 1} / {activeBeats.length}
+                      {t('beatLabel')} {safeIdx + 1} / {activeBeats.length}
                     </span>
                   </div>
                   <p className="text-xs sm:text-sm text-slate-100 leading-relaxed">
@@ -730,7 +755,7 @@ export default function App() {
                       }
                       className="px-3 py-1 text-xs font-semibold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded transition-colors whitespace-nowrap shrink-0"
                     >
-                      {safeIdx + 1 < activeBeats.length ? 'Next Beat →' : 'Replay Beat 1'}
+                      {safeIdx + 1 < activeBeats.length ? t('nextBeatArrow') : t('replayBeat1')}
                     </button>
                   </div>
                 </div>
@@ -738,7 +763,7 @@ export default function App() {
                 {/* Participating Suspects in Stage / Case */}
                 <div className="lg:col-span-4 flex items-center gap-2 overflow-x-auto py-1">
                   {stageSuspects.map((sId) => {
-                    const susp = CHARACTERS[sId];
+                    const susp = characters[sId] || CHARACTERS[sId];
                     const persona = susp.tierEvolution[activeCase.tier - 1];
                     const isSpeaking = currentBeat?.speakerId === sId;
                     return (
@@ -820,7 +845,7 @@ export default function App() {
                     Detective Silas Vance
                   </div>
                   <div className="text-[11px] text-slate-400 truncate">
-                    {CHARACTERS.detective_silas.tierEvolution[activeCase.tier - 1].roleTitle}
+                    {characters.detective_silas.tierEvolution[activeCase.tier - 1].roleTitle}
                   </div>
                 </div>
               </div>
@@ -865,7 +890,7 @@ export default function App() {
                 }`}
               >
                 <FileText className="w-3.5 h-3.5" />
-                Forensic Dossier
+                {t('tabCaseDossier')}
               </button>
               <button
                 type="button"
@@ -877,7 +902,7 @@ export default function App() {
                 }`}
               >
                 <Database className="w-3.5 h-3.5" />
-                Schema & Sample Data ({activeCase.tables.length})
+                {t('tabDatabaseSchema')} ({activeCase.tables.length})
               </button>
             </div>
 
@@ -908,7 +933,7 @@ export default function App() {
                 {/* Narrative Briefing */}
                 <div>
                   <h3 className="text-xs font-mono text-slate-400 uppercase tracking-wider">
-                    01. Crime Scene Narrative
+                    01. {t('forensicNarrative')}
                   </h3>
                   <p className="mt-1.5 text-slate-200 leading-relaxed">
                     {activeCase.narrative}
@@ -918,7 +943,7 @@ export default function App() {
                 {/* Forensic Objective */}
                 <div className="pt-4 border-t border-slate-800">
                   <h3 className="text-xs font-mono text-amber-400 uppercase tracking-wider">
-                    02. Forensic Objective
+                    02. {t('forensicObjective')}
                   </h3>
                   <p className="mt-1.5 text-slate-100 leading-relaxed">
                     {activeCase.forensicObjective}
@@ -933,7 +958,7 @@ export default function App() {
                   <div>
                     <h3 className="text-xs font-mono text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
                       <AlertTriangle className="w-3.5 h-3.5" />
-                      03. The Architectural Pitfall
+                      03. {t('knownPitfall')}
                     </h3>
                     <p className="mt-1 text-xs text-slate-300 leading-relaxed">
                       {activeCase.pitfall}
@@ -943,7 +968,7 @@ export default function App() {
                   <div>
                     <h3 className="text-xs font-mono text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      04. Target Pass Metric
+                      04. {t('passMetric')}
                     </h3>
                     <p className="mt-1 text-xs font-mono text-slate-200 tabular-nums">
                       {activeCase.passMetric} (Target Latency &lt; {activeCase.targetLatencyMs}ms · Max Cost &le; {activeCase.targetMaxCost})
@@ -956,7 +981,7 @@ export default function App() {
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="text-xs font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                       <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
-                      05. Investigative Intuition ({unlockedHints[activeCaseId] || 0} / 3 Hints)
+                      05. {t('investigativeIntuition')} ({unlockedHints[activeCaseId] || 0} / 3 Hints)
                     </h3>
                     <div className="flex items-center gap-2">
                       {(unlockedHints[activeCaseId] || 0) < 3 && (
@@ -1119,7 +1144,7 @@ export default function App() {
             <div className="px-5 py-3 bg-[#0A0E17] border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-xs font-mono text-slate-300">
                 <Terminal className="w-4 h-4 text-amber-400" />
-                <span>SQL FORENSIC WORKBENCH · CASE {activeCase.id}</span>
+                <span>{t('terminalTitle')} · CASE {activeCase.id}</span>
               </div>
 
               <div className="flex items-center gap-2">
@@ -1129,7 +1154,7 @@ export default function App() {
                   className="px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-slate-900 border border-slate-800 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  Reset Starter SQL
+                  {t('resetStarterSqlBtn')}
                 </button>
                 <button
                   type="button"
@@ -1138,7 +1163,7 @@ export default function App() {
                   className="px-3.5 py-1.5 text-xs font-semibold text-slate-100 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0"
                 >
                   <Play className="w-3.5 h-3.5 text-amber-400" />
-                  {isRunning ? 'Executing...' : 'Run Query'}
+                  {isRunning ? t('runningQueryBtn') : t('runQueryBtn')}
                 </button>
                 <button
                   type="button"
@@ -1147,7 +1172,7 @@ export default function App() {
                   className="px-4 py-1.5 text-xs font-semibold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  {isEvaluating ? 'Interrogating...' : 'Submit Evidence'}
+                  {isEvaluating ? t('evaluatingEvidence') : t('submitEvidence')}
                 </button>
               </div>
             </div>
@@ -1169,7 +1194,7 @@ export default function App() {
             {execResult && (
               <div className="px-5 py-3 bg-[#0A0E17] border-t border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono tabular-nums">
                 <div>
-                  <span className="text-slate-500 block text-[10px]">SIMULATED LATENCY</span>
+                  <span className="text-slate-500 block text-[10px]">{t('simulatedLatency').toUpperCase()}</span>
                   <span
                     className={
                       execResult.telemetry.simulatedLatencyMs <= activeCase.targetLatencyMs
@@ -1183,7 +1208,7 @@ export default function App() {
                 </div>
 
                 <div>
-                  <span className="text-slate-500 block text-[10px]">EXECUTION COST</span>
+                  <span className="text-slate-500 block text-[10px]">{t('engineCost').toUpperCase()}</span>
                   <span
                     className={
                       execResult.telemetry.simulatedCostUnits <= activeCase.targetMaxCost
@@ -1196,14 +1221,14 @@ export default function App() {
                 </div>
 
                 <div>
-                  <span className="text-slate-500 block text-[10px]">SCAN & INDEX TELEMETRY</span>
+                  <span className="text-slate-500 block text-[10px]">{t('rowsScanned').toUpperCase()}</span>
                   <span className="text-slate-200 truncate block" title={execResult.telemetry.rowsScannedLabel}>
                     {execResult.telemetry.rowsScannedLabel}
                   </span>
                 </div>
 
                 <div>
-                  <span className="text-slate-500 block text-[10px]">WATCHDOG STATUS</span>
+                  <span className="text-slate-500 block text-[10px]">{t('watchdogStatus').toUpperCase()}</span>
                   {execResult.telemetry.watchdogAlertLevel === 'NOMINAL' ? (
                     <span className="text-emerald-400 font-semibold inline-flex items-center gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5" />
@@ -1240,7 +1265,7 @@ export default function App() {
                   }`}
                 >
                   <Database className="w-3.5 h-3.5" />
-                  Evidence Result Grid ({execResult?.rows.length || 0})
+                  {t('tabEvidenceRows')} ({execResult?.rows.length || 0})
                 </button>
 
                 <button
@@ -1253,7 +1278,7 @@ export default function App() {
                   }`}
                 >
                   <Cpu className="w-3.5 h-3.5" />
-                  EXPLAIN Plan & Cost Meter
+                  {t('tabExplainPlan')}
                 </button>
 
                 <button
@@ -1266,7 +1291,7 @@ export default function App() {
                   }`}
                 >
                   <MessageSquareWarning className="w-3.5 h-3.5" />
-                  Suspect Interrogation Log
+                  {t('tabInterrogation')}
                 </button>
               </div>
 
@@ -1624,5 +1649,13 @@ export default function App() {
         onClose={() => setIsDossiersOpen(false)}
       />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <QueryNoirApp />
+    </LanguageProvider>
   );
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import { X, CheckCircle2, Lock, Play, Award } from 'lucide-react';
 import { FORENSIC_CASES, ForensicCase } from '../data/cases';
 import { CutsceneType } from './CutsceneModal';
+import { useLanguage } from '../i18n/LanguageContext';
 
 interface CurriculumMatrixModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ export const CurriculumMatrixModal: React.FC<CurriculumMatrixModalProps> = ({
   onTriggerCutscene,
   onClose
 }) => {
+  const { getCase, t } = useLanguage();
   if (!isOpen) return null;
 
   const isCaseUnlocked = (c: ForensicCase, idx: number) => {
@@ -129,9 +131,10 @@ export const CurriculumMatrixModal: React.FC<CurriculumMatrixModalProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/80 text-xs">
-              {FORENSIC_CASES.map((c, idx) => {
+              {FORENSIC_CASES.map((baseCase, idx) => {
+                const c = getCase(baseCase.id);
                 const isSolved = Boolean(solvedCases[c.id]);
-                const unlocked = isCaseUnlocked(c, idx);
+                const unlocked = isCaseUnlocked(baseCase, idx);
                 const isActive = c.id === activeCaseId;
                 return (
                   <tr

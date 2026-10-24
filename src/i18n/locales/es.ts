@@ -1,0 +1,115 @@
+import { TranslationsDictionary } from '../types';
+
+export const esTranslations: TranslationsDictionary = {
+  // Brand & Navigation
+  brandTitle: 'QUERY_NOIR',
+  navActiveCase: 'Caso Activo',
+  navCaseIndex: 'Índice de Casos',
+  navDossiers: 'Expedientes de Sospechosos',
+  navCurriculum: 'Matriz Curricular',
+  submitEvidence: 'Presentar Evidencia',
+  evaluatingEvidence: 'Evaluando Evidencia...',
+
+  // Progression Toolbar
+  tier1Name: 'Nivel 1: Detective de Calle (Junior)',
+  tier2Name: 'Nivel 2: Detective del Sindicato (Semisenior)',
+  tier3Name: 'Nivel 3: Mente Maestra Forense (Senior)',
+  casesCleared: 'Casos Resueltos',
+  progressiveMode: 'Progresivo',
+  unlockedMode: 'Todo Desbloqueado',
+  modeTooltip: 'Alternar bloqueo de progresión entre niveles de autorización',
+
+  // Left Pane: Tabs & Dossier
+  tabCaseDossier: 'Expediente del Caso',
+  tabDatabaseSchema: 'Esquema de BD',
+  forensicNarrative: 'Narrativa Forense',
+  forensicObjective: 'Objetivo Forense',
+  knownPitfall: 'Trampa Conocida / Anti-Patrón',
+  passMetric: 'Métrica de Aprobación',
+  coreConcepts: 'Conceptos Clave',
+  antiPatternSolved: 'Anti-Patrón Resuelto',
+  simulatingLabel: 'Simulando',
+  schemaSamplePreview: 'Vista Previa del Esquema',
+  previewRowsCount: 'Filas',
+  tableIndexes: 'Índices de la Tabla',
+  primaryKeyBadge: 'CLAVE PRIMARIA',
+  indexedBadge: 'INDEXADO',
+  previewSampleBtn: 'Muestra de 5 Filas',
+  closeSampleBtn: 'Cerrar Muestra',
+
+  // Center Pane: SQL Terminal
+  terminalTitle: 'TERMINAL SQL FORENSE',
+  targetLatencyLabel: 'Latencia Objetivo',
+  runQueryBtn: 'Ejecutar Consulta',
+  runningQueryBtn: 'Ejecutando...',
+  resetStarterSqlBtn: 'Restablecer SQL Inicial',
+  unlockHintBtn: 'Desbloquear Pista',
+  allHintsUnlocked: 'Todas las Pistas Desbloqueadas (3/3)',
+  hintsRemainingLabel: 'pistas restantes',
+  hintLevel: 'Pista Forense',
+
+  // Right Pane: Tabs & Results
+  tabEvidenceRows: 'Filas de Evidencia',
+  tabExplainPlan: 'Plan EXPLAIN',
+  tabInterrogation: 'Interrogatorio',
+  evidenceRowCount: 'Filas Devueltas',
+  evidenceColumnsCount: 'Columnas',
+  noResultsYet: 'Aún no hay resultados de consulta',
+  noResultsSubtext: 'Ejecuta tu consulta SQL para inspeccionar los registros de evidencia forense devueltos.',
+  queryErrorTitle: 'Error de Ejecución SQLite',
+
+  // Telemetry Dashboard
+  simulatedLatency: 'Latencia Simulada',
+  engineCost: 'Costo del Motor',
+  memoryFootprint: 'Huella de Memoria',
+  rowsScanned: 'Filas Escaneadas',
+  watchdogStatus: 'Estado del Guardián',
+  statusNominal: 'NOMINAL',
+  statusElevated: 'ELEVADO',
+  statusCritical: 'BLOQUEO CRÍTICO',
+  scanRatioLabel: 'Ratio de Escaneo',
+  indexSeekBadge: 'BÚSQUEDA POR ÍNDICE',
+  fullScanBadge: 'ESCANEO TOTAL DE TABLA',
+  tempBTreeSortBadge: 'ORDENAMIENTO B-TREE TEMP',
+
+  // Interrogation Pane
+  suspectConfrontation: 'Confrontación del Sospechoso',
+  forensicDirectorAssessment: 'Evaluación del Director Forense',
+  investigativeIntuition: 'Intuición Investigativa',
+  antiPatternsDetected: 'Anti-Patrones Detectados',
+  optimizationsVerified: 'Optimizaciones Verificadas',
+  evaluatedByGemini: 'Evaluado por el Director Forense Gemini',
+  evaluatedByDeterministic: 'Evaluado por el Núcleo Forense Determinista',
+
+  // Modals & Cutscenes
+  curriculumModalTitle: 'MATRIZ CURRICULAR SQL FORENSE',
+  curriculumModalSubtitle: 'Desde Joins Portuarios hasta Arquitectura de Índices Sargables',
+  dossiersModalTitle: 'EXPEDIENTES DE SOSPECHOSOS DEL SINDICATO',
+  dossiersModalSubtitle: 'Vigilancia y Perfiles Psicológicos en 3 Niveles de Investigación',
+  closeBtn: 'Cerrar',
+  nextBeatBtn: 'Siguiente',
+  fastForwardBtn: 'Omitir',
+  investigateBtn: 'Investigar Caso',
+  caseClearedBanner: 'CASO RESUELTO',
+  stageIntroBanner: 'INFORME DE MISIÓN',
+  reopenCutsceneBtn: 'Repetir Cinemática',
+
+  // Stage Theatre
+  showStageTheatre: 'Mostrar Teatro de Misión',
+  hideStageTheatre: 'Ocultar Teatro de Misión',
+  stageOpeningBriefing: 'INFORME INICIAL DE NIVEL {tier}',
+  stageFinaleShowdown: 'CONFRONTACIÓN FINAL DE NIVEL {tier}',
+  caseOpeningConfrontation: 'CONFRONTACIÓN INICIAL DEL CASO {id}',
+  caseResolutionShowdown: 'RESOLUCIÓN DEL CASO {id}',
+  stageIntroBtn: 'Intro Nivel {tier}',
+  caseIntroBtn: 'Intro Caso {id}',
+  caseOutroBtn: 'Cierre Caso {id}',
+  stageFinaleBtn: 'Final Nivel {tier}',
+  fullscreenCutscene: 'Cinemática Completa',
+  collapseBtn: 'Colapsar',
+  detectiveBadge: 'DETECTIVE',
+  targetSuspectBadge: 'SOSPECHOSO OBJETIVO',
+  beatLabel: 'Parte',
+  nextBeatArrow: 'Siguiente Parte →',
+  replayBeat1: 'Repetir Parte 1'
+};

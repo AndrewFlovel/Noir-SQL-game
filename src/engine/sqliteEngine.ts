@@ -1,6 +1,9 @@
 import initSqlJs, { SqlJsStatic } from 'sql.js';
 import { ForensicCase, getCaseById } from '../data/cases';
 import { CHARACTERS, PortraitMood } from '../data/characters';
+import { Language } from '../i18n/types';
+import { getLocalizedCase } from '../i18n/casesI18n';
+import { getLocalizedCharacters } from '../i18n/charactersI18n';
 
 export interface ExplainNode {
   id: number;
@@ -643,17 +646,31 @@ export async function previewTableSample(
 
 export function buildDeterministicEvaluation(
   caseId: string,
-  execResult: QueryExecutionResponse
+  execResult: QueryExecutionResponse,
+  lang: Language = 'en'
 ): ForensicEvaluationResponse {
-  const forensicCase = getCaseById(caseId);
+  const forensicCase = getLocalizedCase(caseId, lang);
   const primarySuspectId = forensicCase.suspectIds[0];
-  const suspect = CHARACTERS[primarySuspectId];
+  const characters = getLocalizedCharacters(lang);
+  const suspect = characters[primarySuspectId] || CHARACTERS[primarySuspectId];
   const tierPersona = suspect.tierEvolution[forensicCase.tier - 1];
 
   if (execResult.overallPass) {
     const outroBeat =
       forensicCase.outroCutscene.find((b) => b.speakerId !== 'detective_silas') ||
       forensicCase.outroCutscene[0];
+
+    const verdict =
+      lang === 'es'
+        ? `CASO ${forensicCase.id} RESUELTO — Se verificaron las filas de evidencia y las métricas de optimización nivel ${forensicCase.analystLevel} (${execResult.telemetry.simulatedLatencyMs}ms, Costo: ${execResult.telemetry.simulatedCostUnits}).`
+        : lang === 'pt'
+        ? `CASO ${forensicCase.id} RESOLVIDO — Verificadas as linhas de evidência e as métricas de otimização nível ${forensicCase.analystLevel} (${execResult.telemetry.simulatedLatencyMs}ms, Custo: ${execResult.telemetry.simulatedCostUnits}).`
+        : `CASE ${forensicCase.id} CLEARED — Both functional evidence rows and ${forensicCase.analystLevel}-level optimization metrics verified (${execResult.telemetry.simulatedLatencyMs}ms, Cost: ${execResult.telemetry.simulatedCostUnits}).`;
+
+    const guidance =
+      execResult.telemetry.optimizationsVerified.join(' · ') ||
+      (lang === 'es' ? 'Plan de ejecución limpio confirmado.' : lang === 'pt' ? 'Plano de execução exemplar confirmado.' : 'Clean execution plan confirmed.');
+
     return {
       overallPass: true,
       functionalPass: true,
@@ -663,16 +680,35 @@ export function buildDeterministicEvaluation(
       suspectRole: tierPersona.roleTitle,
       suspectMood: outroBeat?.mood || 'cornered',
       suspectDialogue: outroBeat?.dialogue || tierPersona.signatureQuote,
-      forensicDirectorVerdict: `CASE ${forensicCase.id} CLEARED — Both functional evidence rows and ${forensicCase.analystLevel}-level optimization metrics verified (${execResult.telemetry.simulatedLatencyMs}ms, Cost: ${execResult.telemetry.simulatedCostUnits}).`,
-      architecturalGuidance:
-        execResult.telemetry.optimizationsVerified.join(' · ') ||
-        'Clean execution plan confirmed.',
+      forensicDirectorVerdict: verdict,
+      architecturalGuidance: guidance,
       watchdogStatus: 'NOMINAL',
       evaluatedBy: 'DETERMINISTIC_FORENSIC_CORE'
     };
   }
 
   if (execResult.functionalPass && !execResult.optimizationPass) {
+    const suspectDialogue =
+      lang === 'es'
+        ? `"Encontraste las filas correctas, Silas, ¡pero mira tu telemetría de ejecución! ${execResult.telemetry.antiPatternsDetected[0] || 'Tu consulta es demasiado lenta'}—¡el medidor del guardián se disparó!"`
+        : lang === 'pt'
+        ? `"Você achou os dados certos, Silas, mas olhe a telemetria! ${execResult.telemetry.antiPatternsDetected[0] || 'Sua consulta está lenta demais'}—o alerta do sentinela acabou de disparar!"`
+        : `"You found the right rows, Silas, but look at your execution telemetry! ${execResult.telemetry.antiPatternsDetected[0] || 'Your query is too slow'}—the Watchdog meter just spiked!"`;
+
+    const verdict =
+      lang === 'es'
+        ? `EVIDENCIA INADMISIBLE (PLAN NO OPTIMIZADO) — La consulta devolvió las filas correctas, pero violó la higiene de rendimiento para nivel ${forensicCase.analystLevel}.`
+        : lang === 'pt'
+        ? `EVIDÊNCIA INADMISSÍVEL (PLANO NÃO OTIMIZADO) — A consulta retornou as linhas certas, mas violou o padrão de desempenho nível ${forensicCase.analystLevel}.`
+        : `EVIDENCE INADMISSIBLE (UNOPTIMIZED PLAN) — Query returned the right rows, but violated ${forensicCase.analystLevel} performance hygiene.`;
+
+    const guidance =
+      lang === 'es'
+        ? `${execResult.optimizationFeedback} Recordatorio de trampa: ${forensicCase.pitfall}`
+        : lang === 'pt'
+        ? `${execResult.optimizationFeedback} Lembrete de armadilha: ${forensicCase.pitfall}`
+        : `${execResult.optimizationFeedback} Pitfall reminder: ${forensicCase.pitfall}`;
+
     return {
       overallPass: false,
       functionalPass: true,
@@ -681,13 +717,27 @@ export function buildDeterministicEvaluation(
       suspectName: suspect.name,
       suspectRole: tierPersona.roleTitle,
       suspectMood: suspect.id === 'archivist_zero' ? 'glitching' : 'smug',
-      suspectDialogue: `"You found the right rows, Silas, but look at your execution telemetry! ${execResult.telemetry.antiPatternsDetected[0] || 'Your query is too slow'}—the Watchdog meter just spiked!"`,
-      forensicDirectorVerdict: `EVIDENCE INADMISSIBLE (UNOPTIMIZED PLAN) — Query returned the right rows, but violated ${forensicCase.analystLevel} performance hygiene.`,
-      architecturalGuidance: `${execResult.optimizationFeedback} Pitfall reminder: ${forensicCase.pitfall}`,
+      suspectDialogue,
+      forensicDirectorVerdict: verdict,
+      architecturalGuidance: guidance,
       watchdogStatus: execResult.telemetry.watchdogAlertLevel,
       evaluatedBy: 'DETERMINISTIC_FORENSIC_CORE'
     };
   }
+
+  const verdict =
+    lang === 'es'
+      ? `EVIDENCIA NO COINCIDE — ${execResult.functionalFeedback}`
+      : lang === 'pt'
+      ? `EVIDÊNCIA INCOMPATÍVEL — ${execResult.functionalFeedback}`
+      : `EVIDENCE MISMATCH — ${execResult.functionalFeedback}`;
+
+  const guidance =
+    lang === 'es'
+      ? `Revisa el Objetivo Forense del Caso ${forensicCase.id}: ${forensicCase.forensicObjective}`
+      : lang === 'pt'
+      ? `Consulte o Objetivo Forense do Caso ${forensicCase.id}: ${forensicCase.forensicObjective}`
+      : `Review the Forensic Objective for Case ${forensicCase.id}: ${forensicCase.forensicObjective}`;
 
   return {
     overallPass: false,
@@ -698,8 +748,8 @@ export function buildDeterministicEvaluation(
     suspectRole: tierPersona.roleTitle,
     suspectMood: suspect.id === 'archivist_zero' ? 'glitching' : 'smug',
     suspectDialogue: `"${tierPersona.signatureQuote}"`,
-    forensicDirectorVerdict: `EVIDENCE MISMATCH — ${execResult.functionalFeedback}`,
-    architecturalGuidance: `Review the Forensic Objective for Case ${forensicCase.id}: ${forensicCase.forensicObjective}`,
+    forensicDirectorVerdict: verdict,
+    architecturalGuidance: guidance,
     watchdogStatus: execResult.telemetry.watchdogAlertLevel,
     evaluatedBy: 'DETERMINISTIC_FORENSIC_CORE'
   };

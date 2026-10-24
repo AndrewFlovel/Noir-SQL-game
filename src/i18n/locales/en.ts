@@ -1,0 +1,115 @@
+import { TranslationsDictionary } from '../types';
+
+export const enTranslations: TranslationsDictionary = {
+  // Brand & Navigation
+  brandTitle: 'QUERY_NOIR',
+  navActiveCase: 'Active Case',
+  navCaseIndex: 'Case Index',
+  navDossiers: 'Suspect Dossiers',
+  navCurriculum: 'Curriculum Matrix',
+  submitEvidence: 'Submit Evidence',
+  evaluatingEvidence: 'Evaluating Evidence...',
+
+  // Progression Toolbar
+  tier1Name: 'Tier 1: Beat Sleuth (Junior)',
+  tier2Name: 'Tier 2: Syndicate Detective (Medior)',
+  tier3Name: 'Tier 3: Forensic Mastermind (Senior)',
+  casesCleared: 'Cases Cleared',
+  progressiveMode: 'Progressive',
+  unlockedMode: 'All Unlocked',
+  modeTooltip: 'Toggle progression locks across clearance tiers',
+
+  // Left Pane: Tabs & Dossier
+  tabCaseDossier: 'Case Dossier',
+  tabDatabaseSchema: 'Database Schema',
+  forensicNarrative: 'Forensic Narrative',
+  forensicObjective: 'Forensic Objective',
+  knownPitfall: 'Known Pitfall / Anti-Pattern',
+  passMetric: 'Pass Metric',
+  coreConcepts: 'Core Concepts',
+  antiPatternSolved: 'Anti-Pattern Solved',
+  simulatingLabel: 'Simulating',
+  schemaSamplePreview: 'Schema Sample Preview',
+  previewRowsCount: 'Rows',
+  tableIndexes: 'Table Indexes',
+  primaryKeyBadge: 'PRIMARY KEY',
+  indexedBadge: 'INDEXED',
+  previewSampleBtn: 'Sample 5 Rows',
+  closeSampleBtn: 'Close Sample',
+
+  // Center Pane: SQL Terminal
+  terminalTitle: 'FORENSIC SQL TERMINAL',
+  targetLatencyLabel: 'Target Latency',
+  runQueryBtn: 'Run Query',
+  runningQueryBtn: 'Running...',
+  resetStarterSqlBtn: 'Reset Starter SQL',
+  unlockHintBtn: 'Unlock Hint',
+  allHintsUnlocked: 'All Hints Unlocked (3/3)',
+  hintsRemainingLabel: 'hints remaining',
+  hintLevel: 'Forensic Lead',
+
+  // Right Pane: Tabs & Results
+  tabEvidenceRows: 'Evidence Rows',
+  tabExplainPlan: 'EXPLAIN Plan',
+  tabInterrogation: 'Interrogation',
+  evidenceRowCount: 'Rows Returned',
+  evidenceColumnsCount: 'Columns',
+  noResultsYet: 'No query execution results yet',
+  noResultsSubtext: 'Execute your SQL query to inspect returned forensic evidence records.',
+  queryErrorTitle: 'SQLite Query Execution Error',
+
+  // Telemetry Dashboard
+  simulatedLatency: 'Simulated Latency',
+  engineCost: 'Engine Cost',
+  memoryFootprint: 'Memory Footprint',
+  rowsScanned: 'Rows Scanned',
+  watchdogStatus: 'Watchdog Status',
+  statusNominal: 'NOMINAL',
+  statusElevated: 'ELEVATED',
+  statusCritical: 'CRITICAL LOCKDOWN',
+  scanRatioLabel: 'Scan Ratio',
+  indexSeekBadge: 'INDEX SEEK',
+  fullScanBadge: 'FULL TABLE SCAN',
+  tempBTreeSortBadge: 'TEMP B-TREE SORT',
+
+  // Interrogation Pane
+  suspectConfrontation: 'Suspect Confrontation',
+  forensicDirectorAssessment: 'Forensic Director Assessment',
+  investigativeIntuition: 'Investigative Intuition',
+  antiPatternsDetected: 'Anti-Patterns Detected',
+  optimizationsVerified: 'Optimizations Verified',
+  evaluatedByGemini: 'Evaluated by Gemini Forensic Director',
+  evaluatedByDeterministic: 'Evaluated by Deterministic Forensic Core',
+
+  // Modals & Cutscenes
+  curriculumModalTitle: 'FORENSIC SQL CURRICULUM MATRIX',
+  curriculumModalSubtitle: 'From Dockside Joins to Sargable Mastermind Index Architecture',
+  dossiersModalTitle: 'SYNDICATE SUSPECT DOSSIERS',
+  dossiersModalSubtitle: 'Surveillance & Psychological Profiles Across 3 Investigation Tiers',
+  closeBtn: 'Close',
+  nextBeatBtn: 'Next',
+  fastForwardBtn: 'Skip',
+  investigateBtn: 'Investigate Case',
+  caseClearedBanner: 'CASE CLEARED',
+  stageIntroBanner: 'STAGE BRIEFING',
+  reopenCutsceneBtn: 'Replay Cutscene',
+
+  // Stage Theatre
+  showStageTheatre: 'Show Stage Theatre',
+  hideStageTheatre: 'Hide Stage Theatre',
+  stageOpeningBriefing: 'STAGE {tier} OPENING BRIEFING',
+  stageFinaleShowdown: 'STAGE {tier} FINALE SHOWDOWN',
+  caseOpeningConfrontation: 'CASE {id} OPENING CONFRONTATION',
+  caseResolutionShowdown: 'CASE {id} RESOLUTION SHOWDOWN',
+  stageIntroBtn: 'Stage {tier} Intro',
+  caseIntroBtn: 'Case {id} Intro',
+  caseOutroBtn: 'Case {id} Outro',
+  stageFinaleBtn: 'Stage {tier} Finale',
+  fullscreenCutscene: 'Fullscreen Cutscene',
+  collapseBtn: 'Collapse',
+  detectiveBadge: 'DETECTIVE',
+  targetSuspectBadge: 'TARGET SUSPECT',
+  beatLabel: 'Beat',
+  nextBeatArrow: 'Next Beat →',
+  replayBeat1: 'Replay Beat 1'
+};

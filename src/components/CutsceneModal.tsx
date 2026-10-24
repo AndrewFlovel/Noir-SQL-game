@@ -18,6 +18,7 @@ import {
 import { ForensicCase } from '../data/cases';
 import { NoirPortrait } from './NoirPortrait';
 import { QueryTelemetry } from '../engine/sqliteEngine';
+import { useLanguage } from '../i18n/LanguageContext';
 
 export type CutsceneType =
   | 'stage_intro'
@@ -49,8 +50,8 @@ export const CutsceneModal: React.FC<CutsceneModalProps> = ({
   onAdvanceNextCase
 }) => {
   const [beatIndex, setBeatIndex] = useState(0);
-
-  const stageScript = STAGE_CUTSCENES[tier];
+  const { stageCutscenes, t } = useLanguage();
+  const stageScript = stageCutscenes[tier] || STAGE_CUTSCENES[tier];
 
   const beats: CutsceneBeat[] = React.useMemo(() => {
     if (type === 'stage_intro') return stageScript.introBeats;

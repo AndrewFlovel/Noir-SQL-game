@@ -3,6 +3,7 @@ import { X, Play, Award } from 'lucide-react';
 import { CHARACTERS, CharacterId } from '../data/characters';
 import { NoirPortrait } from './NoirPortrait';
 import { CutsceneType } from './CutsceneModal';
+import { useLanguage } from '../i18n/LanguageContext';
 
 interface SuspectDossiersModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export const SuspectDossiersModal: React.FC<SuspectDossiersModalProps> = ({
   onTriggerStageCutscene,
   onClose
 }) => {
+  const { characters, t } = useLanguage();
   if (!isOpen) return null;
 
   return (
@@ -35,10 +37,10 @@ export const SuspectDossiersModal: React.FC<SuspectDossiersModalProps> = ({
         <div className="px-6 py-4 bg-[#0A0E17] border-b border-slate-800 flex items-center justify-between gap-4">
           <div>
             <div className="text-xs font-mono text-amber-400">
-              PERSONNEL & SYNDICATE DOSSIERS · 3-TIER CHARACTER EVOLUTION
+              {t('dossiersModalTitle')}
             </div>
             <h2 className="text-xl font-semibold text-white mt-0.5">
-              Detective Silas Vance & The 5 Recurring Underworld Subjects
+              {t('dossiersModalSubtitle')}
             </h2>
           </div>
 
@@ -55,7 +57,7 @@ export const SuspectDossiersModal: React.FC<SuspectDossiersModalProps> = ({
         {/* Character Cards Grid */}
         <div className="p-6 overflow-y-auto space-y-6">
           {ORDERED_CAST.map((charId) => {
-            const char = CHARACTERS[charId];
+            const char = characters[charId] || CHARACTERS[charId];
             return (
               <div
                 key={charId}
